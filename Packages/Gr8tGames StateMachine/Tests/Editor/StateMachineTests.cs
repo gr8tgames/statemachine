@@ -99,5 +99,35 @@ namespace Gr8tGames.Tests
 
       Assert.That(sum, Is.EqualTo(2));
     }
+
+    [Test]
+    public void FiringPermittedTriggerInConfiguredStateWithTransitionActionCallsActionBeforeOnExit()
+    {
+      int sum = 2;
+      machine = new StateMachine<State, Trigger>(State.OnHook);
+      machine.Configure(State.OnHook)
+        .Permit(Trigger.PickedUp, State.OffHook)
+        .OnExit(() => sum += 2);
+
+      machine.Configure(State.OffHook)
+        .OnEnter(() => sum /= 2);
+
+      machine.Fire(Trigger.PickedUp, () => sum /= 2);
+
+      Assert.That(sum, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void FiringNonPermittedTriggerInConfiguredStateWithTransitionActionDoesNotCallTransitionAction()
+    {
+      int sum = 3;
+      machine = new StateMachine<State, Trigger>(State.OnHook);
+      machine.Configure(State.OnHook)
+        .OnExit(() => sum += 2);
+
+      machine.Fire(Trigger.PickedUp, () => sum /= 3);
+
+      Assert.That(sum, Is.EqualTo(3));
+    }
   }
 }
