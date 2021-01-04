@@ -24,10 +24,16 @@ namespace Gr8tGames
       return new Configuration(this, state);
     }
 
+    public void Fire(TTrigger trigger, Action transitionAction)
+    {
+      if (!CanFire(trigger)) return;
+
+      transitionAction();
+    }
+
     public void Fire(TTrigger trigger)
     {
-      if (!transitions.ContainsKey(State)) return;
-      if (!transitions[State].ContainsKey(trigger)) return;
+      if (!CanFire(trigger)) return;
 
       if(onExit.ContainsKey(State))
       {
@@ -41,6 +47,8 @@ namespace Gr8tGames
         onEnter[State]();
       }
     }
+
+    private bool CanFire(TTrigger trigger) => transitions.ContainsKey(State) && transitions[State].ContainsKey(trigger);
 
     public class Configuration
     {
