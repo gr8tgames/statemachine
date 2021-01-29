@@ -11,6 +11,8 @@ namespace Gr8tGames
     private IDictionary<TState, Action> onEnter;
     private IDictionary<TState, Action> onExit;
 
+    private static readonly Action noOp = () => { };
+
     public StateMachine(TState initialState)
     {
       State = initialState;
@@ -27,25 +29,26 @@ namespace Gr8tGames
     public void Fire(TTrigger trigger, Action transitionAction)
     {
       if (!CanFire(trigger)) return;
+      var startingState = State;
+      var nextState = transitions[State][trigger];
+
+      if (!startingState.Equals(nextState) && onExit.ContainsKey(startingState))
+      {
+        onExit[State]();
+      }
 
       transitionAction();
+      State = nextState;
+
+      if (!startingState.Equals(nextState) && onEnter.ContainsKey(nextState))
+      {
+        onEnter[nextState]();
+      }
     }
 
     public void Fire(TTrigger trigger)
     {
-      if (!CanFire(trigger)) return;
-
-      if(onExit.ContainsKey(State))
-      {
-        onExit[State]();
-      }
-      
-      State = transitions[State][trigger];
-
-      if(onEnter.ContainsKey(State))
-      {
-        onEnter[State]();
-      }
+      Fire(trigger, noOp);
     }
 
     private bool CanFire(TTrigger trigger) => transitions.ContainsKey(State) && transitions[State].ContainsKey(trigger);
